@@ -97,6 +97,7 @@ def detect(opt, save_img=False):
 
         # Process detections
         labels = []
+        bboxes = []
         for i, det in enumerate(pred):  # detections per image
             if webcam:  # batch_size >= 1
                 p, s, im0 = path[i], '%g: ' % i, im0s[i]
@@ -123,6 +124,7 @@ def detect(opt, save_img=False):
                     if save_img or view_img:  # Add bbox to image
                         label = '%s %.2f' % (names[int(cls)], conf)
                         labels.append(names[int(cls)])
+                        bboxes.append(xyxy)
                         plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
 
             # Print time (inference + NMS)
@@ -156,7 +158,7 @@ def detect(opt, save_img=False):
             os.system('open ' + out + ' ' + save_path)
 
     print('Done. (%.3fs)' % (time.time() - t0))
-    return labels
+    return labels, bboxes
 
 def high_level_detect(img_path):
     opt = easydict({
@@ -179,6 +181,6 @@ def high_level_detect(img_path):
     print(opt)
 
     with torch.no_grad():
-        labels = detect(opt)
-    return labels
+        labels, bboxes = detect(opt)
+    return labels, bboxes
 
