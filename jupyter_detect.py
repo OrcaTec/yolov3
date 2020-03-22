@@ -7,10 +7,29 @@ from yolov3.utils.utils import *
 from easydict import EasyDict as easydict
 
 
-def detect(opt, save_img=False):
+def init_detection():
+    opt = easydict({
+    "cfg": './yolov3/models/yolov3-openimages.cfg',
+    "names": './yolov3/models/data/openimages.names',
+    "weights": './yolov3/models/yolov3-openimages.weights',
+    "source": None,
+    "output": 'output',
+    "img_size": 416,
+    "conf_thres": 0.3,
+    "iou_thres": 0.6,
+    "fourcc": 'mp4v',
+    "half": False,
+    "device": '',
+    "view_img": False,
+    "save_txt": False,
+    "classes": None,
+    "agnostic_nms": False
+    })
+    print(opt)
+    
     img_size = (320, 192) if ONNX_EXPORT else opt.img_size  # (320, 192) or (416, 256) or (608, 352) for (height, width)
+    opt.size = img_size
     out, source, weights, half, view_img, save_txt = opt.output, opt.source, opt.weights, opt.half, opt.view_img, opt.save_txt
-    webcam = source == '0' or source.startswith('rtsp') or source.startswith('http') or source.endswith('.txt')
 
     # Initialize
     device = torch_utils.select_device(device='cpu' if ONNX_EXPORT else opt.device)
@@ -20,14 +39,21 @@ def detect(opt, save_img=False):
 
     # Initialize model
     model = Darknet(opt.cfg, img_size)
-
+    
     # Load weights
     attempt_download(weights)
     if weights.endswith('.pt'):  # pytorch format
         model.load_state_dict(torch.load(weights, map_location=device)['model'])
     else:  # darknet format
         load_darknet_weights(model, weights)
+    
+    return model, device, opt
 
+def detect(model, device, opt,img_path, save_img=True):
+    opt.source = img_path
+    out, source, weights, half, view_img, save_txt, img_size = opt.output, opt.source, opt.weights, opt.half, opt.view_img, opt.save_txt, opt.size
+    webcam = source == '0' or source.startswith('rtsp') or source.startswith('http') or source.endswith('.txt')
+    
     # Second-stage classifier
     classify = False
     if classify:
@@ -139,7 +165,8 @@ def detect(opt, save_img=False):
             # Save results (image with detections)
             if save_img:
                 if dataset.mode == 'images':
-                    cv2.imwrite(save_path, im0)
+                    img_save_path = os.getcwd() + os.sep + save_path
+                    cv2.imwrite(img_save_path, im0)
                 else:
                     if vid_path != save_path:  # new video
                         vid_path = save_path
@@ -160,27 +187,8 @@ def detect(opt, save_img=False):
     print('Done. (%.3fs)' % (time.time() - t0))
     return labels, bboxes
 
-def high_level_detect(img_path):
-    opt = easydict({
-    "cfg": './yolov3/models/yolov3-openimages.cfg',
-    "names": './yolov3/models/data/openimages.names',
-    "weights": './yolov3/models/yolov3-openimages.weights',
-    "source": img_path,
-    "output": 'output',
-    "img_size": 416,
-    "conf_thres": 0.3,
-    "iou_thres": 0.6,
-    "fourcc": 'mp4v',
-    "half": False,
-    "device": '',
-    "view_img": False,
-    "save_txt": False,
-    "classes": None,
-    "agnostic_nms": False
-    })
-    print(opt)
-
+def high_level_detect(model, device, opt, img_path):
     with torch.no_grad():
-        labels, bboxes = detect(opt)
+        labels, bboxes = detect(model, device, opt, img_path)
     return labels, bboxes
 
