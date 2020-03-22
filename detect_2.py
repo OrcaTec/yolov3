@@ -160,9 +160,9 @@ def detect(opt, save_img=False):
 
 def high_level_detect(img_path):
     opt = easydict({
-    "cfg": './models/yolov3-openimages.cfg',
-    "names": './models/data/openimages.names',
-    "weights": './models/yolov3-openimages.pt',
+    "cfg": './yolov3/models/yolov3-openimages.cfg',
+    "names": './yolov3/models/data/openimages.names',
+    "weights": './yolov3/models/yolov3-openimages.weights',
     "source": img_path,
     "output": 'output',
     "img_size": 416,
