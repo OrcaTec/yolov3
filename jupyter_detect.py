@@ -50,7 +50,7 @@ def init_detection():
     
     return model, device, opt
 
-def detect(model, device, opt,img_path, save_img=True):
+def detect(model, device, opt,img_path, save_img):
     opt.source = img_path
     out, source, weights, half, view_img, save_txt, img_size = opt.output, opt.source, opt.weights, opt.half, opt.view_img, opt.save_txt, opt.size
     webcam = source == '0' or source.startswith('rtsp') or source.startswith('http') or source.endswith('.txt')
@@ -196,8 +196,8 @@ def detect(model, device, opt,img_path, save_img=True):
     print('Done. (%.3fs)' % (time.time() - t0))
     return labels, bboxes
 
-def high_level_detect(model, device, opt, img_path):
+def high_level_detect(model, device, opt, img_path, save_img):
     with torch.no_grad():
-        labels, bboxes = detect(model, device, opt, img_path)
+        labels, bboxes = detect(model, device, opt, img_path, save_img)
     return labels, bboxes
 
