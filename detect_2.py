@@ -122,7 +122,7 @@ def detect(opt, save_img=False):
 
                     if save_img or view_img:  # Add bbox to image
                         label = '%s %.2f' % (names[int(cls)], conf)
-                        labels.append(label)
+                        labels.append(names[int(cls)])
                         plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
 
             # Print time (inference + NMS)
@@ -169,12 +169,12 @@ def high_level_detect(img_path):
     "conf_thres": 0.3,
     "iou_thres": 0.6,
     "fourcc": 'mp4v',
-    "half": True,
+    "half": False,
     "device": '',
-    "view_img": True,
-    "save_txt": True,
-    "classes": 0,
-    "agnostic_nms": True
+    "view_img": False,
+    "save_txt": False,
+    "classes": None,
+    "agnostic_nms": False
     })
     print(opt)
 
