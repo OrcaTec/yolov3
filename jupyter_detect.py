@@ -5,6 +5,7 @@ from yolov3.models import *  # set ONNX_EXPORT in models.py
 from yolov3.utils.datasets import *
 from yolov3.utils.utils import *
 from easydict import EasyDict as easydict
+from shapely.geometry import Polygon
 
 
 def init_detection():
@@ -135,6 +136,7 @@ def detect(model, device, opt,img_path, save_img=True):
             if det is not None and len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
+                print(im0.shape)
 
                 # Print results
                 for c in det[:, -1].unique():
@@ -150,7 +152,14 @@ def detect(model, device, opt,img_path, save_img=True):
                     if save_img or view_img:  # Add bbox to image
                         label = '%s %.2f' % (names[int(cls)], conf)
                         labels.append(names[int(cls)])
-                        bboxes.append(xyxy)
+                        c1 = (xyxy[0], xyxy[1])
+                        c1_top = (xyxy[0], xyxy[3])
+                        c2_top = (xyxy[2], xyxy[3])
+                        c2 = (xyxy[2], xyxy[1])
+                        polygon = Polygon((c1, c1_top, c2_top, c2))
+                        polygon_image = Polygon(((0, 0), (0, int(im0.shape[0])), (int(im0.shape[1]), int(im0.shape[0])), (int(im0.shape[1]), 0)))                        
+                        percent_polygon = (polygon.area / polygon_image.area) 
+                        bboxes.append(percent_polygon)
                         plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
 
             # Print time (inference + NMS)
