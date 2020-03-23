@@ -8,12 +8,13 @@ from easydict import EasyDict as easydict
 from shapely.geometry import Polygon
 
 
-def init_detection():
+def init_detection(output_path):
     opt = easydict({
     "cfg": './yolov3/models/yolov3-openimages.cfg',
     "names": './yolov3/models/data/openimages.names',
     "weights": './yolov3/models/yolov3-openimages.weights',
     "source": None,
+    "path_to_output" : output_path,
     "output": 'output',
     "img_size": 416,
     "conf_thres": 0.3,
@@ -34,9 +35,10 @@ def init_detection():
 
     # Initialize
     device = torch_utils.select_device(device='cpu' if ONNX_EXPORT else opt.device)
-    if os.path.exists(out):
-        shutil.rmtree(out)  # delete output folder
-    os.makedirs(out)  # make new output folder
+    total_output_path = opt.path_to_output + out
+    if os.path.exists(total_output_path):
+        shutil.rmtree(total_output_path)  # delete output folder
+    os.makedirs(total_output_path)  # make new output folder
 
     # Initialize model
     model = Darknet(opt.cfg, img_size)
@@ -52,7 +54,7 @@ def init_detection():
 
 def detect(model, device, opt,img_path, save_img):
     opt.source = img_path
-    out, source, weights, half, view_img, save_txt, img_size = opt.output, opt.source, opt.weights, opt.half, opt.view_img, opt.save_txt, opt.size
+    out, source, weights, half, view_img, save_txt, img_size, output_path = opt.output, opt.source, opt.weights, opt.half, opt.view_img, opt.save_txt, opt.size, opt.path_to_output
     webcam = source == '0' or source.startswith('rtsp') or source.startswith('http') or source.endswith('.txt')
     
     # Second-stage classifier
@@ -174,7 +176,8 @@ def detect(model, device, opt,img_path, save_img):
             # Save results (image with detections)
             if save_img:
                 if dataset.mode == 'images':
-                    img_save_path = os.getcwd() + os.sep + save_path
+                    #img_save_path = os.getcwd() + os.sep + save_path
+                    img_save_path = output_path + save_path
                     cv2.imwrite(img_save_path, im0)
                 else:
                     if vid_path != save_path:  # new video
